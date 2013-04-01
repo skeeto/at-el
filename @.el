@@ -48,7 +48,8 @@ are provided, extend @."
   "Find and return PROPERTY for OBJECT in the prototype chain."
   (symbol-macrolet ((plist (aref object 1)))
     (if set-mode
-        (setf plist (plist-put plist property new-value))
+        (progn (setf plist (plist-put plist property new-value))
+               new-value)
       (let ((pair (plist-member plist property)))
         (if pair
             (second pair)
