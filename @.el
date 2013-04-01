@@ -87,7 +87,7 @@ are provided, extend @."
   (declare (indent defun))
   `(progn
      (@ ,object ,method (lambda ,(cons '@@ params)
-                          ,@(@--walk (macroexpand-all body))))
+                          ,@(@--walk body)))
      ,method))
 
 (font-lock-add-keywords 'emacs-lisp-mode
