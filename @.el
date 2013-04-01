@@ -15,43 +15,28 @@
 
 (require 'cl)
 
-(defvar @--undefined (make-symbol "undefined")
-  "Special undefined value used internally.")
-
-(defmacro @--table (object)
-  "Get the table for OBJECT."
-  `(aref ,object 1))
-
 (defun @p (object)
   "Return t if OBJECT is an @ object."
   (and (vectorp object) (eq '@ (aref object 0))))
 
-(defvar @
-  (let ((table (make-hash-table :test 'eql :size 6)))
-    (puthash :proto () table)
-    (vector '@ table))
+(defvar @ [@ (:proto ())]
   "The root object of the @ object system.")
 
 (defun @extend (&rest args)
   "Create a new object extending zero or more prototypes, binding
 the given property/value pairs. If no objects are provided,
 extend @."
-  (let* ((objects ())
-         (table (make-hash-table :test 'eql :size 6))
-         (object (vector '@ table)))
+  (let* ((objects ()))
     (while (@p (car args))
       (push (pop args) objects))
     (when (null objects) (push @ objects))
-    (puthash :proto (nreverse objects) table)
-    (loop for (property value) on args by #'cddr
-          do (@ object property value))
-    object))
+    (vector '@ `(:proto ,(nreverse objects) ,@args))))
 
 (defun @precedence (object)
   "Return the lookup precedence order for OBJECT."
   (remove-duplicates
-   (append (gethash :proto (@--table object))
-           (mapcan #'@precedence (gethash :proto (@--table object))))))
+   (append (plist-get (aref object 1) :proto)
+           (mapcan #'@precedence (plist-get (aref object 1) :proto)))))
 
 (defun @of (object proto)
   "Return t if OBJECT is an instance of PROTO."
@@ -59,17 +44,18 @@ extend @."
        (or (eq object proto)
            (and (memq proto (@precedence object)) t))))
 
-(defun* @ (object property &optional (new-value @--undefined))
+(defun* @ (object property &optional (new-value nil set-mode))
   "Find and return PROPERTY for OBJECT in the prototype chain."
-  (if (not (eq new-value @--undefined))
-      (puthash property new-value (@--table object))
-    (let ((value (gethash property (@--table object) @--undefined)))
-      (if (not (eq value @--undefined))
-          value
-        (loop for proto in (@precedence object)
-              for value = (gethash property (@--table proto) @--undefined)
-              unless (eq value @--undefined) return value
-              finally (error "Property unbound: %s" property))))))
+  (symbol-macrolet ((plist (aref object 1)))
+    (if set-mode
+        (setf plist (plist-put plist property new-value))
+      (let ((pair (plist-member plist property)))
+        (if pair
+            (second pair)
+          (loop for proto in (@precedence object)
+                for pair = (plist-member (aref proto 1) property)
+                when pair return (second pair)
+                finally (error "Property unbound: %s" property)))))))
 
 (defsetf @ @)
 
