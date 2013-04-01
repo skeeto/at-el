@@ -50,7 +50,9 @@ extend @."
 
 (defun @of (object proto)
   "Return t if OBJECT is an instance of PROTO."
-  (and (memq proto (@precedence object)) t))
+  (and (@p object)
+       (or (eq object proto)
+           (and (memq proto (@precedence object)) t))))
 
 (defun* @ (object property &optional (new-value @--undefined))
   "Find and return PROPERTY for OBJECT in the prototype chain."
