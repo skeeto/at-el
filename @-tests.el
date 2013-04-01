@@ -1,6 +1,8 @@
 (require 'ert)
+(defalias 'deftest 'ert-deftest)
 
-(ert-deftest @-inheritance ()
+(deftest @-inheritance ()
+  "Tests prototype chain walking."
   (should
    (string= "left"
             (let* ((@root (@extend :name "root"))
@@ -23,9 +25,25 @@
                    (@top (@extend @left @right)))
               (@ @top :name)))))
 
-(ert-deftest @-funcall ()
+(deftest @-instance-of ()
+  "Tests the @of function."
+  (should (@of (@extend) @))
+  (should (@of (@extend (@extend)) @))
+  (should-not (@of @ (@extend)))
+  (should-not (@of t @))
+  (should-not (@of @ t)))
+
+(deftest @-method ()
+  "Tests method calls."
   (should
    (string=
     "Hi, Foo"
     (let ((foo (@extend :greet (lambda (@ name) (concat "Hi, " name)))))
       (@! foo :greet "Foo")))))
+
+(deftest @-replace ()
+  "Tests the @: replacement walker."
+  (should (equal (@--walk '(setf @:name 10))
+                 '(setf (@ @@ :name) 10)))
+  (should (equal (@--walk '(setf '@:name 10))
+                 '(setf '@:name 10))))
