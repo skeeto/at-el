@@ -82,9 +82,11 @@ extend @."
 (defun @--walk (sexp &optional head)
   "Convert all @: symbols into lookups and funcalls."
   (if (consp sexp)
-      (if (and head (@--deref (car sexp)))
-          `(@! @@ ,(@--deref (car sexp)) ,@(@--walk (cdr sexp)))
-        (cons (@--walk (car sexp) t) (@--walk (cdr sexp))))
+      (if (eq 'quote (car sexp))
+          sexp
+        (if (and head (@--deref (car sexp)))
+            `(@! @@ ,(@--deref (car sexp)) ,@(@--walk (cdr sexp)))
+          (cons (@--walk (car sexp) t) (@--walk (cdr sexp)))))
     (if (@--deref sexp)
         `(@ @@ ,(@--deref sexp))
       sexp)))
