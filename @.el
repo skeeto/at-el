@@ -15,17 +15,17 @@
 
 (require 'cl)
 
+(defvar @ [@ (:proto ())]
+  "The root object of the @ object system.")
+
 (defun @p (object)
   "Return t if OBJECT is an @ object."
   (and (vectorp object) (eq '@ (aref object 0))))
 
-(defvar @ [@ (:proto ())]
-  "The root object of the @ object system.")
-
 (defun @extend (&rest args)
   "Create a new object extending zero or more prototypes, binding
-the given property/value pairs. If no objects are provided,
-extend @."
+the given property/value pairs as properties. If no prototypes
+are provided, extend @."
   (let* ((objects ()))
     (while (@p (car args))
       (push (pop args) objects))
