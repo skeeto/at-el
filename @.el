@@ -1,10 +1,15 @@
-;;; @.el --- convenient prototype-based object-oriented programming
+;;; @.el --- multiple-inheritance prototype-based objects DSL
 
 ;; This is free and unencumbered software released into the public domain.
 
 ;;; Commentary:
 
-;;
+;; @ is a library providing a domain-specific language for
+;; multiple-inheritance prototype-based objects in Emacs Lisp. The
+;; goal is to provide a platform for elegant object-oriented Emacs
+;; Lisp.
+
+;; See README.md for a demonstration.
 
 ;;; Code:
 
