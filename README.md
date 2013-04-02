@@ -73,6 +73,6 @@ chain.
 (@of foo (@extend))  ; => nil
 ```
 
-The library provides syntax highlighting for '@def' and '@:' variables
+The library provides syntax highlighting for 'def@' and '@:' variables
 in emacs-lisp-mode, so the above @ uses will look more official in an
 Emacs buffer.
