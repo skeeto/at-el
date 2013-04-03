@@ -50,8 +50,11 @@ are provided, extend @."
        (or (eq object proto)
            (and (memq proto (@precedence object)) t))))
 
-(defun* @ (object property &key super)
-  "Find and return PROPERTY for OBJECT in the preototype chain."
+(defun* @ (object property &key super (default nil defaulted))
+  "Find and return PROPERTY for OBJECT in the prototype chain.
+
+If :super is t, skip the first match in the prototype chain.
+If :default, don't produce an error but return the provided value."
   (let ((queue (make-queue)))
     (queue-enqueue queue object)
     (loop while (queue-head queue)
@@ -63,7 +66,9 @@ are provided, extend @."
                          (decf skip))
           do (dolist (parent (plist-get plist :proto))
                (queue-enqueue queue parent))
-          finally (error "Property unbound: %s" property))))
+          finally (if defaulted
+                      (return default)
+                    (error "Property unbound: %s" property)))))
 
 (defun @--set (object property new-value)
   "Set the PROPERTY of OBJECT to NEW-VALUE."
