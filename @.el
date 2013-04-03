@@ -99,7 +99,7 @@ are provided, extend @."
           ((string-prefix-p "@^:" name)
            (let ((property (intern (substring name 2))))
              (if head
-                 `(funcall (@ @@ ,property :super t))
+                 `(funcall (@ @@@ ,property :super t) @@)
                `(@ @@ ,property :super t))))
           (t (if head (list symbol) symbol)))))
 
@@ -116,8 +116,9 @@ are provided, extend @."
      (setf (@ ,object ,method)
            (function* (lambda ,(cons '@@ params)
                         ,@(if (stringp (car body)) (list (car body)) ())
-                        (with-@@ @@
-                          ,@(if (stringp (car body)) (cdr body) body)))))
+                        (let ((@@@ ,object))
+                          (with-@@ @@
+                            ,@(if (stringp (car body)) (cdr body) body))))))
      ,method))
 
 (font-lock-add-keywords 'emacs-lisp-mode
