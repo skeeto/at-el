@@ -44,21 +44,22 @@ are provided, extend @."
        (or (eq object proto)
            (and (memq proto (@precedence object)) t))))
 
-(defun* @ (object property &optional (new-value nil set-mode))
+(defun* @ (object property &key super)
   "Find and return PROPERTY for OBJECT in the prototype chain."
-  (symbol-macrolet ((plist (aref object 1)))
-    (if set-mode
-        (progn (setf plist (plist-put plist property new-value))
-               new-value)
-      (let ((pair (plist-member plist property)))
-        (if pair
-            (second pair)
-          (loop for proto in (@precedence object)
-                for pair = (plist-member (aref proto 1) property)
-                when pair return (second pair)
-                finally (error "Property unbound: %s" property)))))))
+  (let ((pair (and (not super) (plist-member (aref object 1) property))))
+    (if pair
+        (second pair)
+      (loop for proto in (@precedence object)
+            for pair = (plist-member (aref proto 1) property)
+            when pair return (second pair)
+            finally (error "Property unbound: %s" property)))))
 
-(defsetf @ @)
+(defun @--set (object property new-value)
+  "Set the PROPERTY of OBJECT to NEW-VALUE."
+  (setf (aref object 1) (plist-put (aref object 1) property new-value))
+  new-value)
+
+(defsetf @ @--set)
 
 (defun @! (object property &rest args)
   "Call the method stored in PROPERTY with ARGS."
