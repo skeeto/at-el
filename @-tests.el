@@ -58,4 +58,10 @@
   (should (equal (@--walk '(setf @:name 10) '(quote) #'@--replace)
                  '(setf (@ @@ :name) 10)))
   (should (equal (@--walk '(setf '@:name 10) '(quote) #'@--replace)
-                 '(setf '@:name 10))))
+                 '(setf '@:name 10)))
+  (should (eq :bar (with-@@ (@extend :foo :bar) @:foo)))
+  (should (eq :bar
+              (let* ((a (@extend :foo :bar))
+                     (b (@extend a :foo :foo)))
+                (with-@@ b
+                  @^:foo)))))
