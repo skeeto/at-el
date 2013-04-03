@@ -144,6 +144,10 @@ are provided, extend @."
   "Return t if this object is an instance of OBJECT."
   (@is @@ object))
 
+(def@ @ :keys ()
+  "Return a list of the keys directly on @@."
+  (loop for (key value) on (aref @@ 1) by #'cddr collect key))
+
 ;; Local Variables:
 ;; lexical-binding: t
 ;; End:
