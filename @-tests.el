@@ -31,6 +31,12 @@
     (should (eq :b (@ b :foo)))
     (should (eq :a (@ b :foo :super t)))))
 
+(deftest @-setf ()
+  (let ((a (@extend :foo :before)))
+    (should (eq :before (@ a :foo)))
+    (setf (@ a :foo) :after)
+    (should (eq :after (@ a :foo)))))
+
 (deftest @-instance-of ()
   "Tests the @is function."
   (should (@is (@extend) @))
