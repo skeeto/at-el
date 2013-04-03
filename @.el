@@ -118,6 +118,20 @@ are provided, extend @."
   '(("\\<\\(@\\^?:[^ ()]+\\)\\>"
      (1 'font-lock-builtin-face))))
 
+;; Core methods
+
+(def@ @ :init ())
+
+(def@ @ :new (&rest args)
+  "Extend this object and call the constructor (init) method with ARGS."
+  (let ((object (@extend @@)))
+    (apply (@ object :init) object args)
+    object))
+
+(def@ @ :is (object)
+  "Return t if this object is an instance of OBJECT."
+  (@is @@ object))
+
 (provide '@)
 
 ;;; @.el ends here
