@@ -25,6 +25,12 @@
                    (@top (@extend @left @right)))
               (@ @top :name)))))
 
+(deftest @-super ()
+  (let* ((a (@extend :foo :a))
+         (b (@extend a :foo :b)))
+    (should (eq :b (@ b :foo)))
+    (should (eq :a (@ b :foo :super t)))))
+
 (deftest @-instance-of ()
   "Tests the @is function."
   (should (@is (@extend) @))
