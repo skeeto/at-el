@@ -1,3 +1,5 @@
+;;; @-tests.el -*- lexical-binding: t; -*-
+
 (require 'ert)
 (defalias 'deftest 'ert-deftest)
 
@@ -65,3 +67,5 @@
                      (b (@extend a :foo :foo)))
                 (with-@@ b
                   @^:foo)))))
+
+;;; @-tests.el ends here

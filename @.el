@@ -132,6 +132,10 @@ are provided, extend @."
   "Return t if this object is an instance of OBJECT."
   (@is @@ object))
 
+;; Local Variables:
+;; lexical-binding: t
+;; End:
+
 (provide '@)
 
 ;;; @.el ends here
