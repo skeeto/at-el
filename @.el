@@ -102,8 +102,8 @@ are provided, extend @."
   "Define METHOD body on OBJECT."
   (declare (indent defun))
   `(progn
-     (@ ,object ,method
-        (function* (lambda ,(cons '@@ params) (with-@@ @@ ,@body))))
+     (setf (@ ,object ,method)
+           (function* (lambda ,(cons '@@ params) (with-@@ @@ ,@body))))
      ,method))
 
 (font-lock-add-keywords 'emacs-lisp-mode
