@@ -55,7 +55,7 @@
 
 (deftest @-replace ()
   "Tests the @: replacement walker."
-  (should (equal (@--walk '(setf @:name 10))
+  (should (equal (@--walk '(setf @:name 10) '(quote) #'@--replace)
                  '(setf (@ @@ :name) 10)))
-  (should (equal (@--walk '(setf '@:name 10))
+  (should (equal (@--walk '(setf '@:name 10) '(quote) #'@--replace)
                  '(setf '@:name 10))))

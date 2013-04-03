@@ -65,31 +65,45 @@ are provided, extend @."
   "Call the method stored in PROPERTY with ARGS."
   (apply (@ object property) object args))
 
-(defun @--deref (symbol)
-  "Convert a @: symbol into a keyword symbol."
-  (when (symbolp symbol)
-    (let ((name (symbol-name symbol)))
-      (when (and (>= (length name) 2) (string= "@:" (substring name 0 2)))
-        (intern (substring name 1))))))
+(defun @--walk (sexp skip replace &optional head)
+  "Replace all symbols by calling REPLACE on them."
+  (macrolet ((wrap (exp) `(let ((v ,exp)) (if ,head (list v) v))))
+    (cond
+     ((symbolp sexp) (funcall replace sexp head))
+     ((atom sexp) (wrap sexp))
+     ((member (first sexp) skip) (wrap sexp))
+     ((wrap
+       (nconc (@--walk (first sexp) skip replace t)
+              (loop for element in (cdr sexp)
+                    collect (@--walk element skip replace nil))))))))
 
-(defun @--walk (sexp &optional head)
-  "Convert all @: symbols into lookups and funcalls."
-  (if (consp sexp)
-      (if (eq 'quote (car sexp))
-          sexp
-        (if (and head (@--deref (car sexp)))
-            `(@! @@ ,(@--deref (car sexp)) ,@(@--walk (cdr sexp)))
-          (cons (@--walk (car sexp) t) (@--walk (cdr sexp)))))
-    (if (@--deref sexp)
-        `(@ @@ ,(@--deref sexp))
-      sexp)))
+(defun @--replace (symbol head)
+  "Replace @: and @^: symbols with their lookup/funcall expansions."
+  (let ((name (symbol-name symbol)))
+    (cond ((string-prefix-p "@:" name)
+           (let ((property (intern (substring name 1))))
+             (if head
+                 `(@! @@ ,property)
+               `(@ @@ ,property))))
+          ((string-prefix-p "@^:" name)
+           (let ((property (intern (substring name 2))))
+             (if head
+                 `(funcall (@ @@ ,property :super t))
+               `(@ @@ ,property :super t))))
+          (t (if head (list symbol) symbol)))))
+
+(defmacro with-@@ (object &rest body)
+  "Provide the @: and @^: DSL utilities for OBJECT in BODY."
+  (declare (indent defun))
+  `(let ((@@ ,object))
+     ,@(cdr (@--walk (cons 'progn body) '(quote with-@@) #'@--replace))))
 
 (defmacro def@ (object method params &rest body)
   "Define METHOD body on OBJECT."
   (declare (indent defun))
   `(progn
-     (@ ,object ,method (lambda ,(cons '@@ params)
-                          ,@(@--walk body)))
+     (@ ,object ,method
+        (function* (lambda ,(cons '@@ params) (with-@@ @@ ,@body))))
      ,method))
 
 (font-lock-add-keywords 'emacs-lisp-mode
@@ -98,7 +112,7 @@ are provided, extend @."
      (2 'font-lock-function-name-face))))
 
 (font-lock-add-keywords 'emacs-lisp-mode
-  '(("\\<\\(@:[^ ()]+\\)\\>"
+  '(("\\<\\(@\\^?:[^ ()]+\\)\\>"
      (1 'font-lock-builtin-face))))
 
 (provide '@)
