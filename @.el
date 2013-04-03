@@ -103,7 +103,10 @@ are provided, extend @."
   (declare (indent defun))
   `(progn
      (setf (@ ,object ,method)
-           (function* (lambda ,(cons '@@ params) (with-@@ @@ ,@body))))
+           (function* (lambda ,(cons '@@ params)
+                        ,@(if (stringp (car body)) (list (car body)) ())
+                        (with-@@ @@
+                          ,@(if (stringp (car body)) (cdr body) body)))))
      ,method))
 
 (font-lock-add-keywords 'emacs-lisp-mode
