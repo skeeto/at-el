@@ -38,7 +38,7 @@ are provided, extend @."
    (append (plist-get (aref object 1) :proto)
            (mapcan #'@precedence (plist-get (aref object 1) :proto)))))
 
-(defun @of (object proto)
+(defun @is (object proto)
   "Return t if OBJECT is an instance of PROTO."
   (and (@p object)
        (or (eq object proto)

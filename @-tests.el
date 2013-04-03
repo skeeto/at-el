@@ -26,12 +26,12 @@
               (@ @top :name)))))
 
 (deftest @-instance-of ()
-  "Tests the @of function."
-  (should (@of (@extend) @))
-  (should (@of (@extend (@extend)) @))
-  (should-not (@of @ (@extend)))
-  (should-not (@of t @))
-  (should-not (@of @ t)))
+  "Tests the @is function."
+  (should (@is (@extend) @))
+  (should (@is (@extend (@extend)) @))
+  (should-not (@is @ (@extend)))
+  (should-not (@is t @))
+  (should-not (@is @ t)))
 
 (deftest @-method ()
   "Tests method calls."

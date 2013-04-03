@@ -65,12 +65,12 @@ chain.
 
 (@! foo :describe)  ; => "{color: (:blue :red), area: 40}"
 
-;; @of is the classical "instanceof" operator.
-(@of foo @colored)   ; => t
-(@of foo @rectangle) ; => t
-(@of foo foo)        ; => t
-(@of foo @)          ; => t
-(@of foo (@extend))  ; => nil
+;; @is is the classical "instanceof" operator.
+(@is foo @colored)   ; => t
+(@is foo @rectangle) ; => t
+(@is foo foo)        ; => t
+(@is foo @)          ; => t
+(@is foo (@extend))  ; => nil
 ```
 
 The library provides syntax highlighting for 'def@' and '@:' variables
