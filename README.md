@@ -4,8 +4,8 @@
 multiple-inheritance prototype-based objects in Emacs Lisp. The goal
 is to provide a platform for elegant object-oriented Emacs Lisp.
 
-The root object of the @ object system is `@`. The `@extend` function
-is used to create new objects extending other objects. Given no
+The root object of the @ object system is `@`. New objects are created
+with the `@extend` function, by extending existing objects. Given no
 objects to extend, new objects will implicitly extend `@`. Keyword
 arguments provided to `@extend` are assigned as properties on the new
 object.
@@ -16,6 +16,12 @@ used in property lookups, are listed in the `:proto` property of the
 object. This can be modified at any time to change the prototype
 chain.
 
+## Feature Demonstration
+
+Here's a hands-on example of @'s features.
+
+### Property Access
+
 ```el
 (require '@)
 
@@ -24,8 +30,9 @@ chain.
 (defvar @rectangle (@extend :width nil :height nil))
 
 ;; The @ function is used to access properties of an object, following
-;; the prototype chain breadth-first as necessary.
-(@ @rectangle :width)  ; => nil
+;; the prototype chain breadth-first as necessary. An error is thrown
+;; if the property has not been defined.
+(@ @rectangle :width) ; => nil
 
 ;; The @ function is setf-able. Assignment *always* happens on the
 ;; immediate object, never on a parent prototype.
@@ -41,7 +48,11 @@ chain.
 ;; definition.
 (def@ @rectangle :area ()
   (* @:width @:height))
+```
 
+### Multiple Inheritance
+
+```el
 ;; Create a color mix-in prototype
 (defvar @colored (@extend :color (list)))
 
@@ -64,14 +75,45 @@ chain.
   (format "{color: %s, area: %d}" @:color (@:area)))
 
 (@! foo :describe)  ; => "{color: (:blue :red), area: 40}"
+```
 
-;; @is is the classical "instanceof" operator.
+### Constructors and Super Methods
+
+```el
+;; By convention, constructors are the :init method. The @^:
+;; "variables" are used to access super methods, including :init. Use
+;; this to chain constructors and methods up the prototype chain (like
+;; CLOS's `call-next-method').
+(def@ @rectangle :init (width height)
+  (@^:init)
+  (setf @:width width @:height height))
+
+;; The :new method on @ extends @@ with a new object and calls :init
+;; on it with the provided arguments.
+(@! (@! @rectangle :new 13.2 2.1) :area) ; => 27.72
+```
+
+### Reflection
+
+```el
+;; @is is the classical "instanceof" operator. It works on any type of
+;; object in both positions.
 (@is foo @colored)   ; => t
 (@is foo @rectangle) ; => t
 (@is foo foo)        ; => t
 (@is foo @)          ; => t
 (@is foo (@extend))  ; => nil
+(@is [1 2 3] @)      ; => nil
+
+;; The :is method on @ can also be used for this.
+(@! @colored :is @)    ; => t
+(@! foo :is @colored)  ; => t
+
+;; The :keys method on @ can be used to list the keys on an object.
+(@! foo :keys)  ; => (:proto :width :height :color)
 ```
+
+### Syntax Highlighting
 
 The library provides syntax highlighting for 'def@' and '@:' variables
 in emacs-lisp-mode, so the above @ uses will look more official in an
