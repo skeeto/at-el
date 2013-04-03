@@ -2,6 +2,11 @@
 
 ;; This is free and unencumbered software released into the public domain.
 
+;; Author: Christopher Wellons <mosquitopsu@gmail.com>
+;; URL: https://github.com/skeeto/skewer-mode
+;; Version: 1.4
+;; Package-Requires: ((queue "0.1"))
+
 ;;; Commentary:
 
 ;; @ is a library providing a domain-specific language for
@@ -14,6 +19,7 @@
 ;;; Code:
 
 (require 'cl)
+(require 'queue)
 
 (defvar @ [@ (:proto ())]
   "The root object of the @ object system.")
@@ -45,14 +51,19 @@ are provided, extend @."
            (and (memq proto (@precedence object)) t))))
 
 (defun* @ (object property &key super)
-  "Find and return PROPERTY for OBJECT in the prototype chain."
-  (let ((pair (and (not super) (plist-member (aref object 1) property))))
-    (if pair
-        (second pair)
-      (loop for proto in (@precedence object)
-            for pair = (plist-member (aref proto 1) property)
-            when pair return (second pair)
-            finally (error "Property unbound: %s" property)))))
+  "Find and return PROPERTY for OBJECT in the preototype chain."
+  (let ((queue (make-queue)))
+    (queue-enqueue queue object)
+    (loop while (queue-head queue)
+          with skip = (if super 1 0)
+          for plist = (aref (queue-dequeue queue) 1)
+          for pair = (plist-member plist property)
+          when pair do (if (zerop skip)
+                           (return (second pair))
+                         (decf skip))
+          do (dolist (parent (plist-get plist :proto))
+               (queue-enqueue queue parent))
+          finally (error "Property unbound: %s" property))))
 
 (defun @--set (object property new-value)
   "Set the PROPERTY of OBJECT to NEW-VALUE."
