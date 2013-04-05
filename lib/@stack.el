@@ -25,4 +25,6 @@
   "Return this entire stack as a list."
   (copy-list @:head))
 
+(provide '@stack)
+
 ;;; @stack.el ends here

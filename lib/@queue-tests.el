@@ -1,3 +1,5 @@
+(require '@queue)
+(require '@stack)
 (require 'ert)
 (defalias 'deftest 'ert-deftest)
 

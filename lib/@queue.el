@@ -29,4 +29,6 @@
   "Return this entire queue as a list."
   (copy-list @:head))
 
+(provide '@queue)
+
 ;;; @queue.el ends here
