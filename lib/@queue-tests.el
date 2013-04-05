@@ -10,12 +10,14 @@
     (@! q :enqueue 3)
     (should
      (equal '(1 2 3)
-            (loop until (@! q :emptyp) collect (@! q :dequeue)))))
-  (let ((q (@extend @queue)))
+            (loop until (@! q :emptyp) collect (@! q :dequeue))))))
+
+(deftest @queue-stack ()
+  (let ((q (@extend @queue @stack)))
     (@! q :enqueue 'b)
     (should (eq 'b (@! q :peek)))
     (@! q :enqueue 'c)
-    (@! q :prepend 'a)
+    (@! q :push 'a)
     (should
      (equal '(a b c)
             (@! q :to-list)))))

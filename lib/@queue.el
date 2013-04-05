@@ -21,11 +21,6 @@
   "Remove and return element at the front of this queue."
   (pop @:head))
 
-(def@ @queue :prepend (element)
-  "Prepend ELEMENT to the front of this queue. Return this queue."
-  (prog1 @@
-      (push element @:head)))
-
 (def@ @queue :peek ()
   "Return the element at the front of the queue without returning it."
   (car @:head))
