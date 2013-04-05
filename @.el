@@ -160,6 +160,34 @@ If :default, don't produce an error but return the provided value."
   "Return a list of the keys directly on @@."
   (loop for (key value) on (aref @@ 1) by #'cddr collect key))
 
+;; Documentation lookup
+
+(defun @--list-all ()
+  "List all global prototypes that start with @."
+  (flet ((protop (atom) (and (boundp atom)
+                             (@p (symbol-value atom))
+                             (= ?@ (aref (symbol-name atom) 0)))))
+    (let ((list))
+      (mapatoms (lambda (atom) (if (protop atom) (push atom list))))
+      list)))
+
+(defun describe-@ (proto property)
+  "Like `describe-function' but for global protoype methods."
+  (interactive
+   (let* ((protos (mapcar #'symbol-name (@--list-all)))
+          (prompt0 "Describe prototype: ")
+          (symbol (intern (completing-read prompt0 protos nil t "@")))
+          (proto (symbol-value symbol))
+          (props (@! proto :keys))
+          (methods (remove-if-not (lambda (p) (functionp (@ proto p))) props))
+          (method-names (mapcar #'symbol-name methods))
+          (prompt1 "Describe property: ")
+          (property (intern (completing-read prompt1 method-names nil t ":"))))
+     (list proto property)))
+  (describe-function (@ proto property)))
+
+(global-set-key (kbd "C-h @") 'describe-@)
+
 ;; Local Variables:
 ;; lexical-binding: t
 ;; End:
