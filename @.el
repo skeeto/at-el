@@ -141,7 +141,7 @@ If :default, don't produce an error but return the provided value."
       (plist-put (aref @ 1) :set
                  (lambda (@@ property new-value)
                    (setf (aref @@ 1)
-                         (plist-put (aref object 1) property new-value))
+                         (plist-put (aref @@ 1) property new-value))
                    new-value)))
 
 (def@ @ :get (property)
