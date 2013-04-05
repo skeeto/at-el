@@ -68,13 +68,12 @@ If :default, don't produce an error but return the provided value."
                (queue-enqueue queue parent))
           finally (return
                    (if defaulted
-                       (@! object :get property default)
+                       default
                      (@! object :get property))))))
 
 (defun @--set (object property new-value)
   "Set the PROPERTY of OBJECT to NEW-VALUE."
-  (setf (aref object 1) (plist-put (aref object 1) property new-value))
-  new-value)
+  (@! object :set property new-value)))
 
 (defsetf @ @--set)
 
@@ -138,13 +137,18 @@ If :default, don't produce an error but return the provided value."
 
 ;; Core methods
 
-(def@ @ :init ())
+(setf (aref @ 1) ; Bootstrap :set
+      (plist-put (aref @ 1) :set
+                 (lambda (@@ property new-value)
+                   (setf (aref @@ 1)
+                         (plist-put (aref object 1) property new-value))
+                   new-value)))
 
-(def@ @ :get (property &optional (default nil defaulted))
+(def@ @ :get (property)
   "Dynamic property getter. This one produces an error."
-  (if defaulted
-      default
-    (error "Property unbound: %s" property)))
+  (error "Property unbound: %s" property))
+
+(def@ @ :init ())
 
 (def@ @ :new (&rest args)
   "Extend this object and call the constructor method (:init) with ARGS."
@@ -165,9 +169,9 @@ If :default, don't produce an error but return the provided value."
 (defvar @soft-get (@extend :default-get nil)
   "Mixin: don't throw errors on unbound properties.")
 
-(def@ @soft-get :get (property &optional (default nil defaulted))
+(def@ @soft-get :get (property)
   "If no DEFAULT is provided for PROPERTY, return @:default-get."
-  (if defaulted default @:default-get))
+  @:default-get)
 
 ;; Documentation lookup
 

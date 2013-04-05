@@ -49,15 +49,21 @@
     (prog1 (aref @:vector (decf @:fill))
       (setf (aref @:vector @:fill) nil))))
 
-(def@ @vector :get (n &optional (default nil defaulted))
+(def@ @vector :get (n)
   "Dynamic getter: get Nth element from this vector."
-  (if (integerp n)
-      (if (< n @:fill)
-          (aref @:vector n)
-        (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n)))
-    (if defaulted
-        (@^:get n default)
-      (@^:get n))))
+  (if (not (integerp n))
+      (@^:get n)
+    (if (< n @:fill)
+        (aref @:vector n)
+      (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n)))))
+
+(def@ @vector :set (n value)
+  "If N is an integer, sets the index in the vector to VALUE."
+  (if (not (integerp n))
+      (@^:set n value)
+    (while (>= n @:fill)
+      (@:grow))
+    (setf (aref @:vector n) value)))
 
 (def@ @vector :shift ()
   "Remove element from the front of this vector (slow)."

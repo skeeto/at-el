@@ -12,4 +12,5 @@
     (should (eq 'b (@! v :get 1)))
     (should (eq 'a (@! v :shift)))
     (@! v :unshift 'x 'y 'z)
-    (should (equal '(x y z b) (@! v :to-list)))))
+    (setf (@ v 1) 'Y)
+    (should (equal '(x Y z b) (@! v :to-list)))))

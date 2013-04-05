@@ -107,7 +107,7 @@ Here's a hands-on example of @'s features.
 ;; If a property is not found in the prototype chain, the :get method
 ;; is used to determine the value.
 (let ((o (@extend)))
-  (def@ o :get (property &optional default)
+  (def@ o :get (property)
     (format "got %s" property))
   (@ o :foo))
 ; => "got :foo"
