@@ -15,6 +15,10 @@
   "Return the number of elements in this vector."
   @:fill)
 
+(def@ @vector :capacity ()
+  "Return the current capacity of this vector."
+  (length @:vector))
+
 (def@ @vector :emptyp ()
   "Return t if this vector is empty."
   (= @:fill 0))
