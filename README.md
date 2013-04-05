@@ -101,15 +101,15 @@ Here's a hands-on example of @'s features.
 (@! (@! @rectangle :new 13.2 2.1) :area) ; => 27.72
 ```
 
-### Dynamic Property Getters
+### Dynamic Property Getters and Setters
 
 ```el
 ;; If a property is not found in the prototype chain, the :get method
 ;; is used to determine the value.
-(let ((o (@extend)))
-  (def@ o :get (property)
+(let ((obj (@extend)))
+  (def@ obj :get (property)
     (format "got %s" property))
-  (@ o :foo))
+  (@ obj :foo))
 ; => "got :foo"
 
 ;; The :get method on @, the default getter, produces an error if a
@@ -117,7 +117,25 @@ Here's a hands-on example of @'s features.
 ;; nil mix in @soft-get, which provides an alternate default :get
 ;; method.
 (@ (@extend @rectangle @soft-get) :foo) ; => nil
+
+;; Properties are assigned using the :set method. The :set method on @
+;; does standard property assignment as would be expected. This can be
+;; overridden for custom assignment behavior.
+(let ((foo-only (@extend)))
+  (def@ foo-only :set (property value)
+    (if (string-match-p "^:foo" (prin1-to-string property))
+        (@^:set property value)  ; supermethod
+      (error "Only :foo* properties allowed!")))
+  (setf (@ foo-only :foo-bar) 'a)  ; ok
+  (setf (@ foo-only :bar) 'b))     ; ERROR
+
+;; Using this, an @immutable prototype mixin is provided that
+;; disallows all property assignments.
+(setf (@ (@extend @immutable) :foo) 'a)  ; ERROR
 ```
+
+The @vector prototype under lib/ shows how these can be useful for
+providing pseudo-properties.
 
 ### Reflection
 
