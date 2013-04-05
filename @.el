@@ -73,7 +73,7 @@ If :default, don't produce an error but return the provided value."
 
 (defun @--set (object property new-value)
   "Set the PROPERTY of OBJECT to NEW-VALUE."
-  (@! object :set property new-value)))
+  (@! object :set property new-value))
 
 (defsetf @ @--set)
 
