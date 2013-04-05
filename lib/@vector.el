@@ -5,6 +5,12 @@
 (defvar @vector (@extend :vector [] :fill 0)
   "A dynamically growing vector with constant-time element access.")
 
+(def@ @vector :init (&rest elements)
+  "Initialize vector with ELEMENTS."
+  (@^:init)
+  (setf @:vector (coerce elements 'vector)
+        @:fill (length elements)))
+
 (def@ @vector :size ()
   "Return the number of elements in this vector."
   @:fill)
