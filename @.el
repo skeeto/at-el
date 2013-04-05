@@ -160,6 +160,15 @@ If :default, don't produce an error but return the provided value."
   "Return a list of the keys directly on @@."
   (loop for (key value) on (aref @@ 1) by #'cddr collect key))
 
+;; Other useful prototypes
+
+(defvar @soft-get (@extend :default-get nil)
+  "Mixin: don't throw errors on unbound properties.")
+
+(def@ @soft-get :get (property &optional (default nil defaulted))
+  "If no DEFAULT is provided for PROPERTY, return @:default-get."
+  (if defaulted default @:default-get))
+
 ;; Documentation lookup
 
 (defun @--list-all ()

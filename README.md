@@ -18,7 +18,8 @@ chain.
 
 ## Feature Demonstration
 
-Here's a hands-on example of @'s features.
+Here's a hands-on example of @'s features. For a bunch of practical
+examples check out the prototypes under lib/.
 
 ### Property Access
 
@@ -91,6 +92,24 @@ Here's a hands-on example of @'s features.
 ;; The :new method on @ extends @@ with a new object and calls :init
 ;; on it with the provided arguments.
 (@! (@! @rectangle :new 13.2 2.1) :area) ; => 27.72
+```
+
+### Dynamic Property Getters
+
+```el
+;; If a property is not found in the prototype chain, the :get method
+;; is used to determine the value.
+(let ((o (@extend)))
+  (def@ o :get (property &optional default)
+    (format "got %s" property))
+  (@ o :foo))
+; => "got :foo"
+
+;; The :get method on @, the default getter, produces an error if a
+;; property is unbound. If you would rather unbound properties return
+;; nil mix in @soft-get, which provides an alternate default :get
+;; method.
+(@ (@extend @rectangle @soft-get) :foo) ; => nil
 ```
 
 ### Reflection
