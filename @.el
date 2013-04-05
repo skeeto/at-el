@@ -147,7 +147,7 @@ If :default, don't produce an error but return the provided value."
     (error "Property unbound: %s" property)))
 
 (def@ @ :new (&rest args)
-  "Extend this object and call the constructor (init) method with ARGS."
+  "Extend this object and call the constructor method (:init) with ARGS."
   (let ((object (@extend @@)))
     (apply (@ object :init) object args)
     object))
