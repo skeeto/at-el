@@ -16,10 +16,17 @@ used in property lookups, are listed in the `:proto` property of the
 object. This can be modified at any time to change the prototype
 chain.
 
+## Prototype Library
+
+Practical example @ prototypes can be found under lib/. When
+prototypes are stored in global variables following the @ naming
+convention, as demonstrated in the examples, their methods can be
+looked up with `describe-@` (<kbd>C-h @</kbd>), similar to
+`describe-function` (<kbd>C-h f</kbd>).
+
 ## Feature Demonstration
 
-Here's a hands-on example of @'s features. For a bunch of practical
-examples check out the prototypes under lib/.
+Here's a hands-on example of @'s features.
 
 ### Property Access
 
