@@ -53,23 +53,6 @@
     (prog1 (aref @:vector (decf @:fill))
       (setf (aref @:vector @:fill) nil))))
 
-(def@ @vector :get (n)
-  "Dynamic getter: get Nth element from this vector."
-  (if (not (integerp n))
-      (@^:get n)
-    (if (< n @:fill)
-        (aref @:vector n)
-      (when @:vector-error
-        (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n))))))
-
-(def@ @vector :set (n value)
-  "If N is an integer, sets the index in the vector to VALUE."
-  (if (not (integerp n))
-      (@^:set n value)
-    (while (>= n (length @:vector))
-      (@:grow))
-    (setf (aref @:vector n) value)))
-
 (def@ @vector :shift ()
   "Remove element from the front of this vector (slow)."
   (unless (@:emptyp)
@@ -86,6 +69,23 @@
 (def@ @vector :to-list ()
   "Return the contents of this vector as a list."
   (coerce (subseq @:vector 0 @:fill) 'list))
+
+(def@ @vector :get (n)
+  "Dynamic getter: get Nth element from this vector."
+  (if (not (integerp n))
+      (@^:get n)
+    (if (< n @:fill)
+        (aref @:vector n)
+      (when @:vector-error
+        (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n))))))
+
+(def@ @vector :set (n value)
+  "If N is an integer, sets the index in the vector to VALUE."
+  (if (not (integerp n))
+      (@^:set n value)
+    (while (>= n (length @:vector))
+      (@:grow))
+    (setf (aref @:vector n) value)))
 
 (provide '@vector)
 
