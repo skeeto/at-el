@@ -169,14 +169,14 @@ If :default, don't produce an error but return the provided value."
 (defvar @soft-get (@extend :default-get nil)
   "Mixin: don't throw errors on unbound properties.")
 
-(def@ @soft-get :get (property)
+(def@ @soft-get :get (_property)
   "If no DEFAULT is provided for PROPERTY, return @:default-get."
   @:default-get)
 
 (defvar @immutable (@extend :immutable-error t)
   "Don't allow changes on this object. Causes error if :immutable-error is t.")
 
-(def@ @immutable :set (property value)
+(def@ @immutable :set (property _value)
   "Don't allow setting of properties on this object."
   (when @:immutable-error
     (error "Object is immutable, cannot set %s" property)))
