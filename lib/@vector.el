@@ -2,8 +2,10 @@
 
 (require '@)
 
-(defvar @vector (@extend :vector [] :fill 0 :vector-error nil)
-  "A dynamically growing vector with constant-time element access.")
+(defvar @vector (@extend :vector [] :fill 0 :infinite t :vector-default nil)
+  "A dynamically growing vector with constant-time element
+access. If :infinite is t then array access is unbounded to the
+right (i.e. all non-negative accesses are valid).")
 
 (def@ @vector :init (&rest elements)
   "Initialize vector with ELEMENTS."
@@ -27,7 +29,7 @@
   "Increase the capacity of this vector by FACTOR."
   (prog1 @@
       (let* ((new-length (max 1 (ceiling (* factor (length @:vector)))))
-             (vec (make-vector new-length nil)))
+             (vec (make-vector new-length @:vector-default)))
         (loop for element across @:vector
               for i upfrom 0
               do (setf (aref vec i) element))
@@ -76,7 +78,8 @@
       (@^:get n)
     (if (< n @:fill)
         (aref @:vector n)
-      (when @:vector-error
+      (if @:infinite
+          @:vector-default
         (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n))))))
 
 (def@ @vector :set (n value)
