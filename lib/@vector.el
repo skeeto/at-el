@@ -2,7 +2,7 @@
 
 (require '@)
 
-(defvar @vector (@extend :vector [] :fill 0)
+(defvar @vector (@extend :vector [] :fill 0 :vector-error nil)
   "A dynamically growing vector with constant-time element access.")
 
 (def@ @vector :init (&rest elements)
@@ -59,13 +59,14 @@
       (@^:get n)
     (if (< n @:fill)
         (aref @:vector n)
-      (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n)))))
+      (when @:vector-error
+        (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n))))))
 
 (def@ @vector :set (n value)
   "If N is an integer, sets the index in the vector to VALUE."
   (if (not (integerp n))
       (@^:set n value)
-    (while (>= n @:fill)
+    (while (>= n (length @:vector))
       (@:grow))
     (setf (aref @:vector n) value)))
 
