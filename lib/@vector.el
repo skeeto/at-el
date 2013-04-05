@@ -49,13 +49,15 @@
     (prog1 (aref @:vector (decf @:fill))
       (setf (aref @:vector @:fill) nil))))
 
-(def@ @vector :get (n)
+(def@ @vector :get (n &optional (default nil defaulted))
   "Dynamic getter: get Nth element from this vector."
   (if (integerp n)
       (if (< n @:fill)
           (aref @:vector n)
         (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n)))
-    (@^:get n)))
+    (if defaulted
+        (@^:get n default)
+      (@^:get n))))
 
 (def@ @vector :shift ()
   "Remove element from the front of this vector (slow)."
