@@ -2,7 +2,9 @@
 
 (require '@)
 
-(defvar @queue (@extend :head nil :tail nil))
+(defvar @queue (@extend :head nil :tail nil)
+  "A queue, restricted to appending to the back and retrieving from the front.
+This prototype can be mixed with @stack for pushing onto the front.")
 
 (def@ @queue :emptyp ()
   "Return t if this queue is empty."

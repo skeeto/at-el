@@ -2,7 +2,8 @@
 
 (require '@)
 
-(defvar @vector (@extend :vector [] :fill 0))
+(defvar @vector (@extend :vector [] :fill 0)
+  "A dynamically growing vector with constant-time element access.")
 
 (def@ @vector :size ()
   "Return the number of elements in this vector."

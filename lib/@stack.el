@@ -2,7 +2,8 @@
 
 (require '@)
 
-(defvar @stack (@extend :head ()))
+(defvar @stack (@extend :head ())
+  "A stack with access provided only to the top of the stack.")
 
 (def@ @stack :emptyp ()
   "Return t if the stack is empty."
