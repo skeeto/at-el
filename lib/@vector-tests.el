@@ -1,0 +1,13 @@
+(require '@vector)
+(require 'ert)
+(defalias 'deftest 'ert-deftest)
+
+(deftest @vector-tests ()
+  (let ((v (@! @vector :new)))
+    (@! v :push 'a)
+    (@! v :push 'b 'c)
+    (should (equal '(a b c) (@! v :to-list)))
+    (should (eq 'c (@! v :pop)))
+    (should (eq 'a (@! v :get 0)))
+    (should (eq 'b (@! v :get 1)))
+    (should (equal '(a b) (@! v :to-list)))))
