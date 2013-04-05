@@ -5,6 +5,10 @@
 (defvar @stack (@extend :head ())
   "A stack with access provided only to the top of the stack.")
 
+(def@ @stack :size ()
+  "Return the number of elements in this stack."
+  (length @:head))
+
 (def@ @stack :emptyp ()
   "Return t if the stack is empty."
   (null @:head))

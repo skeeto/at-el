@@ -6,6 +6,10 @@
   "A queue, restricted to appending to the back and retrieving from the front.
 This prototype can be mixed with @stack for pushing onto the front.")
 
+(def@ @queue :size ()
+  "Return the number of elements in this queue."
+  (length @:head))
+
 (def@ @queue :emptyp ()
   "Return t if this queue is empty."
   (null @:head))

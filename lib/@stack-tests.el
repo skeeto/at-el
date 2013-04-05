@@ -11,6 +11,8 @@
     (should
      (equal '(c b a)
             (@! s :to-list)))
+    (should (= 3 (@! s :size)))
     (should
      (equal '(c b a)
-            (loop until (@! s :emptyp) collect (@! s :pop))))))
+            (loop until (@! s :emptyp) collect (@! s :pop))))
+    (should (= 0 (@! s :size)))))
