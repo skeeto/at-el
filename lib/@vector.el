@@ -82,4 +82,6 @@
   "Return the contents of this vector as a list."
   (coerce (subseq @:vector 0 @:fill) 'list))
 
+(provide '@vector)
+
 ;;; @vector.el ends here
