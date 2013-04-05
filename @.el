@@ -89,9 +89,9 @@ If :default, don't produce an error but return the provided value."
      ((atom sexp) (wrap sexp))
      ((member (first sexp) skip) (wrap sexp))
      ((wrap
-       (nconc (@--walk (first sexp) skip replace t)
-              (loop for element in (cdr sexp)
-                    collect (@--walk element skip replace nil))))))))
+       (append (@--walk (first sexp) skip replace t)
+               (loop for element in (cdr sexp)
+                     collect (@--walk element skip replace nil))))))))
 
 (defun @--replace (symbol head)
   "Replace @: and @^: symbols with their lookup/funcall expansions."
