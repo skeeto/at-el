@@ -21,4 +21,8 @@
   "Return the first element of this stack without removing it."
   (car @:head))
 
+(def@ @stack :to-list ()
+  "Return this entire stack as a list."
+  (copy-list @:head))
+
 ;;; @stack.el ends here

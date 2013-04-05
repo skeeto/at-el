@@ -9,4 +9,7 @@
     (@! s :push 'c)
     (should
      (equal '(c b a)
+            (@! s :to-list)))
+    (should
+     (equal '(c b a)
             (loop until (@! s :emptyp) collect (@! s :pop))))))
