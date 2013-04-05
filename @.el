@@ -14,6 +14,8 @@
 ;; goal is to provide a platform for elegant object-oriented Emacs
 ;; Lisp.
 
+;; @ performance benefits significantly from byte-compilation.
+
 ;; See README.md for a demonstration.
 
 ;;; Code:
