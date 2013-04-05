@@ -1,0 +1,24 @@
+;;; @stack.el --- stack prototype written in @
+
+(require '@)
+
+(defvar @stack (@extend :head ()))
+
+(def@ @stack :emptyp ()
+  "Return t if the stack is empty."
+  (null @:head))
+
+(def@ @stack :push (element)
+  "Push ELEMENT onto the stack, returning the stack."
+  (prog1 @@
+      (push element @:head)))
+
+(def@ @stack :pop ()
+  "Pop the top element from this stack, returning it."
+  (pop @:head))
+
+(def@ @stack :peek ()
+  "Return the first element of this stack without removing it."
+  (car @:head))
+
+;;; @stack.el ends here
