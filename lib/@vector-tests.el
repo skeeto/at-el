@@ -10,4 +10,6 @@
     (should (eq 'c (@! v :pop)))
     (should (eq 'a (@! v :get 0)))
     (should (eq 'b (@! v :get 1)))
-    (should (equal '(a b) (@! v :to-list)))))
+    (should (eq 'a (@! v :shift)))
+    (@! v :unshift 'x 'y 'z)
+    (should (equal '(x y z b) (@! v :to-list)))))

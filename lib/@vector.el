@@ -8,6 +8,10 @@
   "Return the number of elements in this vector."
   @:fill)
 
+(def@ @vector :emptyp ()
+  "Return t if this vector is empty."
+  (= @:fill 0))
+
 (def@ @vector :grow (&optional (factor 2))
   "Increase the capacity of this vector by FACTOR."
   (prog1 @@
@@ -39,11 +43,25 @@
       (setf (aref @:vector @:fill) nil))))
 
 (def@ @vector :get (n)
+  "Dynamic getter: get Nth element from this vector."
   (if (integerp n)
       (if (< n @:fill)
           (aref @:vector n)
         (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n)))
     (@^:get n)))
+
+(def@ @vector :shift ()
+  "Remove element from the front of this vector (slow)."
+  (unless (@:emptyp)
+    (prog1 (@ @@ 0)
+      (setf @:vector (subseq @:vector 1))
+      (decf @:fill))))
+
+(def@ @vector :unshift (&rest elements)
+  "Add elements from to the front of this vector (slow), returning this."
+  (prog1 @@
+      (setf @:vector (concatenate 'vector elements @:vector))
+    (incf @:fill (length elements))))
 
 (def@ @vector :to-list ()
   "Return the contents of this vector as a list."
