@@ -21,7 +21,9 @@ This prototype can be mixed with @stack for pushing onto the front.")
 
 (def@ @queue :dequeue ()
   "Remove and return element at the front of this queue."
-  (pop @:head))
+  (prog1 (pop @:head)
+    (when (@:emptyp)
+      (setf @:tail nil))))
 
 (def@ @queue :peek ()
   "Return the element at the front of the queue without returning it."
