@@ -88,7 +88,8 @@ right (i.e. all non-negative accesses are valid).")
       (@^:set n value)
     (while (>= n (length @:vector))
       (@:grow))
-    (setf (aref @:vector n) value)))
+    (setf (aref @:vector n) value
+          @:fill (max (1+ n) @:fill))))
 
 (provide '@vector)
 
