@@ -3,7 +3,7 @@
 (defalias 'deftest 'ert-deftest)
 
 (deftest @stack-test ()
-  (let ((s (@extend @stack)))
+  (let ((s (@! @stack :new)))
     (@! s :push 'a)
     (should (eq 'a (@! s :peek)))
     (@! s :push 'b)

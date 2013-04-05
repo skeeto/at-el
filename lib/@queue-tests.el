@@ -4,7 +4,7 @@
 (defalias 'deftest 'ert-deftest)
 
 (deftest @queue-test ()
-  (let ((q (@extend @queue)))
+  (let ((q (@! @queue :new)))
     (@! q :enqueue 0)
     (@! q :enqueue 1)
     (@! q :dequeue)
