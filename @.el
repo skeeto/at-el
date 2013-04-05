@@ -66,9 +66,10 @@ If :default, don't produce an error but return the provided value."
                          (decf skip))
           do (dolist (parent (plist-get plist :proto))
                (queue-enqueue queue parent))
-          finally (if defaulted
-                      (return default)
-                    (error "Property unbound: %s" property)))))
+          finally (return
+                   (if defaulted
+                       (@! object :get property default)
+                     (@! object :get property))))))
 
 (defun @--set (object property new-value)
   "Set the PROPERTY of OBJECT to NEW-VALUE."
@@ -138,6 +139,12 @@ If :default, don't produce an error but return the provided value."
 ;; Core methods
 
 (def@ @ :init ())
+
+(def@ @ :get (property &optional (default nil defaulted))
+  "Dynamic property getter. This one produces an error."
+  (if defaulted
+      default
+    (error "Property unbound: %s" property)))
 
 (def@ @ :new (&rest args)
   "Extend this object and call the constructor (init) method with ARGS."
