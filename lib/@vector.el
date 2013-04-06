@@ -68,6 +68,13 @@ right (i.e. all non-negative accesses are valid).")
       (setf @:vector (concatenate 'vector elements @:vector))
     (incf @:fill (length elements))))
 
+(def@ @vector :swap (i j)
+  "Swap elements I and J in this vector, returning this vector."
+  (prog1 @@
+    (unless (= i j)
+      (psetf (@ @@ i) (@ @@ j)
+             (@ @@ j) (@ @@ i)))))
+
 (def@ @vector :to-list ()
   "Return the contents of this vector as a list."
   (coerce (subseq @:vector 0 @:fill) 'list))
