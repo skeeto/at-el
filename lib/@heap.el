@@ -44,6 +44,10 @@
               while (not (= largest i))
               do (@! @:vector :swap i largest))))))
 
+(def@ @heap :clone ()
+  "Make a shallow copy of this heap."
+  (@extend @@ :vector (@! @:vector :clone)))
+
 ;; Local Variables:
 ;; lexical-binding: t
 ;; End:

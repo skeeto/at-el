@@ -33,6 +33,11 @@ This prototype can be mixed with @stack for pushing onto the front.")
   "Return the element at the front of the queue without returning it."
   (car @:head))
 
+(def@ @queue :clone ()
+  "Return a shallow copy of this queue."
+  (let ((new-head (copy-seq @:head)))
+    (@extend @@ :head new-head :tail (last new-head))))
+
 (def@ @queue :to-list ()
   "Return this entire queue as a list."
   (copy-list @:head))

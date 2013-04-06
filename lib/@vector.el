@@ -79,6 +79,11 @@ right (i.e. all non-negative accesses are valid).")
   "Return the contents of this vector as a list."
   (coerce (subseq @:vector 0 @:fill) 'list))
 
+(def@ @vector :clone ()
+  "Make a shallow copy of this vector."
+  (@extend @@ :vector (copy-seq @:vector) :fill @:fill
+              :infinite @:infinite :vector-default @:vector-default))
+
 (def@ @vector :get (n)
   "Dynamic getter: get Nth element from this vector."
   (if (not (integerp n))
