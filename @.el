@@ -23,7 +23,15 @@
 (require 'cl)
 (require 'queue)
 
-(defvar @ [@ (:proto ())]
+(defun @--make-box (v)
+  (cons v ()))
+
+(defun @--box-value (b &rest v)
+  (if v
+      (setf (car b) (car v))
+    (car b)))
+
+(defvar @ [@ `(:proto ,(@--make-box ()))]
   "The root object of the @ object system.")
 
 (defun @p (object)
@@ -38,13 +46,15 @@ are provided, extend @."
     (while (@p (car args))
       (push (pop args) objects))
     (when (null objects) (push @ objects))
-    (vector '@ `(:proto ,(nreverse objects) ,@args))))
+    (vector '@ `(:proto ,(@--make-box (nreverse objects))
+                        ,@(loop for (pname pval) on args by #'cddr
+                                nconc (list pname (@--make-box pval)))))))
 
 (defun @precedence (object)
   "Return the lookup precedence order for OBJECT."
   (remove-duplicates
-   (append (plist-get (aref object 1) :proto)
-           (mapcan #'@precedence (plist-get (aref object 1) :proto)))))
+   (let ((proto (@--box-value (plist-get (aref object 1) :proto))))
+    (append proto (mapcan #'@precedence proto)))))
 
 (defun @is (object proto)
   "Return t if OBJECT is an instance of PROTO."
@@ -64,9 +74,9 @@ If :default, don't produce an error but return the provided value."
           for plist = (aref (queue-dequeue queue) 1)
           for pair = (plist-member plist property)
           when pair do (if (zerop skip)
-                           (return (second pair))
+                           (return (@--box-value (second pair)))
                          (decf skip))
-          do (dolist (parent (plist-get plist :proto))
+          do (dolist (parent (@--box-value (plist-get plist :proto)))
                (queue-enqueue queue parent))
           finally (return
                    (if defaulted
@@ -141,10 +151,16 @@ If :default, don't produce an error but return the provided value."
 
 (setf (aref @ 1) ; Bootstrap :set
       (plist-put (aref @ 1) :set
-                 (lambda (@@ property new-value)
-                   (setf (aref @@ 1)
-                         (plist-put (aref @@ 1) property new-value))
-                   new-value)))
+                 (@--make-box
+                  (lambda (@@ property new-value)
+                    (let* ((props (aref @@ 1))
+                           (box (plist-get props property)))
+                      (if box
+                          (@--box-value box new-value)
+                        (setf (aref @@ 1)
+                              (plist-put props property (@--make-box new-value)))))
+
+                    new-value))))
 
 (def@ @ :get (property)
   "Dynamic property getter. This one produces an error."
