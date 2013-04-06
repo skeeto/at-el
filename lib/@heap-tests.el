@@ -12,4 +12,4 @@
     (should (equal '(a b c d) (map #'car (@! h :to-list))))
     (should
      (equal '(a b c d)
-            (loop until (@! h :emptyp) collect (car (@! h :next))))))))
+            (loop until (@! h :emptyp) collect (car (@! h :next)))))))
