@@ -48,6 +48,11 @@
   "Make a shallow copy of this heap."
   (@extend @@ :vector (@! @:vector :clone)))
 
+(def@ @heap :to-list ()
+  "Return the elements of this heap in order as a list."
+  (let ((clone (@:clone)))
+    (loop until (@! clone :emptyp) collect (@! clone :next))))
+
 ;; Local Variables:
 ;; lexical-binding: t
 ;; End:
