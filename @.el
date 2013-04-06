@@ -23,15 +23,23 @@
 (require 'cl)
 (require 'queue)
 
-(defun @--make-box (v)
-  (cons v ()))
+;; Boxes
 
-(defun @--box-value (b &rest v)
-  (if v
-      (setf (car b) (car v))
-    (car b)))
+(defun @--box (value)
+  "Box VALUE."
+  (cons value ()))
 
-(defvar @ [@ `(:proto ,(@--make-box ()))]
+(defun @--box-set (box value)
+  "Set the value in the box."
+  (setf (car box) value))
+
+(defun @--box-get (box)
+  "Retrieve the value in the box."
+  (car box))
+
+;; @
+
+(defvar @ [@ `(:proto ,(@--box ()))]
   "The root object of the @ object system.")
 
 (defun @p (object)
@@ -46,14 +54,14 @@ are provided, extend @."
     (while (@p (car args))
       (push (pop args) objects))
     (when (null objects) (push @ objects))
-    (vector '@ `(:proto ,(@--make-box (nreverse objects))
+    (vector '@ `(:proto ,(@--box (nreverse objects))
                         ,@(loop for (pname pval) on args by #'cddr
-                                nconc (list pname (@--make-box pval)))))))
+                                nconc (list pname (@--box pval)))))))
 
 (defun @precedence (object)
   "Return the lookup precedence order for OBJECT."
   (remove-duplicates
-   (let ((proto (@--box-value (plist-get (aref object 1) :proto))))
+   (let ((proto (@--box-get (plist-get (aref object 1) :proto))))
     (append proto (mapcan #'@precedence proto)))))
 
 (defun @is (object proto)
@@ -74,9 +82,9 @@ If :default, don't produce an error but return the provided value."
           for plist = (aref (queue-dequeue queue) 1)
           for pair = (plist-member plist property)
           when pair do (if (zerop skip)
-                           (return (@--box-value (second pair)))
+                           (return (@--box-get (second pair)))
                          (decf skip))
-          do (dolist (parent (@--box-value (plist-get plist :proto)))
+          do (dolist (parent (@--box-get (plist-get plist :proto)))
                (queue-enqueue queue parent))
           finally (return
                    (if defaulted
@@ -151,14 +159,14 @@ If :default, don't produce an error but return the provided value."
 
 (setf (aref @ 1) ; Bootstrap :set
       (plist-put (aref @ 1) :set
-                 (@--make-box
+                 (@--box
                   (lambda (@@ property new-value)
                     (let* ((props (aref @@ 1))
                            (box (plist-get props property)))
                       (if box
-                          (@--box-value box new-value)
+                          (@--box-set box new-value)
                         (setf (aref @@ 1)
-                              (plist-put props property (@--make-box new-value)))))
+                              (plist-put props property (@--box new-value)))))
 
                     new-value))))
 
