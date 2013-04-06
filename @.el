@@ -215,7 +215,7 @@ If :default, don't produce an error but return the provided value."
     (funcall callback @@ property new))
   (@^:set property new))
 
-;; Documentation lookup
+;; Top-level Object Management
 
 (defun @--list-all ()
   "List all global prototypes that start with @."
@@ -242,6 +242,19 @@ If :default, don't produce an error but return the provided value."
   (describe-function (@ proto property)))
 
 (global-set-key (kbd "C-h @") 'describe-@)
+
+(defun @--undefine-all ()
+  "Undefine all public prototypes. Useful for reloading when debugging."
+  (interactive)
+  (mapc #'makunbound (@--list-all)))
+
+(defun @--byte-compile-all ()
+  "Byte-compile all public prototype methods."
+  (interactive)
+  (dolist (proto (mapcar #'symbol-value (@--list-all)))
+    (dolist (prop (@! proto :keys))
+      (when (functionp (@ proto prop))
+        (byte-compile (@ proto prop))))))
 
 ;; Local Variables:
 ;; lexical-binding: t
