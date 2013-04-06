@@ -137,6 +137,20 @@ Here's a hands-on example of @'s features.
 The @vector prototype under lib/ shows how these can be useful for
 providing pseudo-properties.
 
+```el
+;; Built on :set, a @watchable mixin is provided for observing all of
+;; the changes to any object.
+(let ((history ())
+      (obj (@extend @watchable)))
+  (@! obj :watch (lambda (obj prop new) (push (list property new) history)))
+  (setf (@ obj :foo) 0)
+  (setf (@ obj :foo) 1)
+  (setf (@ obj :bar) 'a)
+  (setf (@ obj :bar) 'b)
+  history)
+; => ((:bar b) (:bar a) (:foo 1) (:foo 0))
+```
+
 ### Reflection
 
 ```el
