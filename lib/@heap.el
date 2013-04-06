@@ -37,20 +37,23 @@
 (def@ @heap :next ()
   "Remove and return the next element in the heap."
   (prog1 (@ @:vector 0)
-    (let* ((replace (@! @:vector :pop))
-           (priority (funcall @:heap-key replace)))
+    (let* ((replace (@! @:vector :pop)))
       (unless (@! @:vector :emptyp)
         (setf (@ @:vector 0) replace)
         (loop with compare = @:heap-compare
               with key = @:heap-key
               for i = 0 then largest
               for a = (+ 1 (* i 2)) and b = (+ 2 (* i 2))
-              for na = (@ @:vector a)
-              and nb = (@ @:vector b)
+              for na = (@ @:vector a) and nb = (@ @:vector b)
               for largest =
-              (cond ((and na (funcall compare (funcall key na) priority)) a)
-                    ((and nb (funcall compare (funcall key nb) priority)) b)
-                    (i))
+              (let ((largest i))
+                (if (and na (funcall compare (funcall key na)
+                                     (funcall key (@ @:vector largest))))
+                    (setf largest a))
+                (if (and nb (funcall compare (funcall key nb)
+                                     (funcall key (@ @:vector largest))))
+                    (setf largest b))
+                largest)
               while (not (= largest i))
               do (@! @:vector :swap i largest))))))
 
