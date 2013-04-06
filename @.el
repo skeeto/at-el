@@ -183,6 +183,22 @@ If :default, don't produce an error but return the provided value."
   (when @:immutable-error
     (error "Object is immutable, cannot set %s" property)))
 
+(defvar @watchable (@extend :watchers nil)
+  "Allow subscribing to changes to this object.")
+
+(def@ @watchable :watch (callback)
+  "Subscribe to this object's changes."
+  (push callback @:watchers))
+
+(def@ @watchable :unwatch (callback)
+  "Subscribe to this object's changes."
+  (setf @:watchers (remove callback @:watchers)))
+
+(def@ @watchable :set (property new)
+  (dolist (callback @:watchers)
+    (funcall callback @@ property new))
+  (@^:set property new))
+
 ;; Documentation lookup
 
 (defun @--list-all ()
