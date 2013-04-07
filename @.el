@@ -25,9 +25,11 @@
 
 ;; Boxes
 
-(defun @--box (value)
+(defconst @--box-empty-cell (gensym))
+
+(defun @--box (value parent-value)
   "Box VALUE."
-  (cons value ()))
+  (cons value parent-value))
 
 (defun @--box-set (box value)
   "Set the value in the box."
@@ -35,11 +37,13 @@
 
 (defun @--box-get (box)
   "Retrieve the value in the box."
-  (car box))
+  (if (eq (car box) @--box-empty-cell)
+      (@--box-get (cdr box))
+    (car box)))
 
 ;; @
 
-(defvar @ [@ `(:proto ,(@--box ()))]
+(defvar @ (vector '@ (list :proto (@--box () @--box-empty-cell)))
   "The root object of the @ object system.")
 
 (defun @p (object)
@@ -54,9 +58,9 @@ are provided, extend @."
     (while (@p (car args))
       (push (pop args) objects))
     (when (null objects) (push @ objects))
-    (vector '@ `(:proto ,(@--box (nreverse objects))
+    (vector '@ `(:proto ,(@--box (nreverse objects) @--box-empty-cell)
                         ,@(loop for (pname pval) on args by #'cddr
-                                nconc (list pname (@--box pval)))))))
+                                nconc (list pname (@--box pval @--box-empty-cell)))))))
 
 (defun @precedence (object)
   "Return the lookup precedence order for OBJECT."
@@ -75,21 +79,33 @@ are provided, extend @."
 
 If :super is t, skip the first match in the prototype chain.
 If :default, don't produce an error but return the provided value."
-  (let ((queue (make-queue)))
-    (queue-enqueue queue object)
-    (loop while (queue-head queue)
-          with skip = (if super 1 0)
-          for plist = (aref (queue-dequeue queue) 1)
-          for pair = (plist-member plist property)
-          when pair do (if (zerop skip)
-                           (return (@--box-get (second pair)))
-                         (decf skip))
-          do (dolist (parent (@--box-get (plist-get plist :proto)))
-               (queue-enqueue queue parent))
-          finally (return
-                   (if defaulted
-                       default
-                     (@! object :get property))))))
+  (let ((mem (plist-member (aref object 1) property)))
+    (if (and (not super) mem)
+        ;; fast path
+        (@--box-get (second mem))
+      ;; walk the prototype chain
+      (let ((queue (make-queue)))
+        (queue-enqueue queue object)
+        (loop while (queue-head queue)
+              with skip = (if super 1 0)
+              for obj = (queue-dequeue queue)
+              for plist = (aref obj 1)
+              for pair = (plist-member plist property)
+              when pair do (if (zerop skip)
+                               (progn
+                                 (unless (or super (eq obj object))
+                                   ;; cache the answer
+                                   (setf (aref object 1)
+                                         (plist-put (aref object 1) property
+                                                    (@--box @--box-empty-cell (second pair)))))
+                                 (return (@--box-get (second pair))))
+                             (decf skip))
+              do (dolist (parent (@--box-get (plist-get plist :proto)))
+                   (queue-enqueue queue parent))
+              finally (return
+                       (if defaulted
+                           default
+                         (@! object :get property))))))))
 
 (defun @--set (object property new-value)
   "Set the PROPERTY of OBJECT to NEW-VALUE."
@@ -166,9 +182,10 @@ If :default, don't produce an error but return the provided value."
                       (if box
                           (@--box-set box new-value)
                         (setf (aref @@ 1)
-                              (plist-put props property (@--box new-value)))))
+                              (plist-put props property (@--box new-value @--box-empty-cell)))))
 
-                    new-value))))
+                    new-value)
+                  @--box-empty-cell)))
 
 (def@ @ :get (property)
   "Dynamic property getter. This one produces an error."
