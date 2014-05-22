@@ -5,7 +5,7 @@
 ;; Author: Christopher Wellons <mosquitopsu@gmail.com>
 ;; URL: https://github.com/skeeto/skewer-mode
 ;; Version: 1.4
-;; Package-Requires: ((queue "0.1"))
+;; Package-Requires: ((queue "0.1") (emacs "24"))
 
 ;;; Commentary:
 
