@@ -16,6 +16,8 @@ used in property lookups, are listed in the `:proto` property of the
 object. This can be modified at any time to change the prototype
 chain.
 
+See also: [Prototype-based Elisp Objects with @](http://nullprogram.com/blog/2013/04/07/)
+
 ## Prototype Library
 
 Practical example @ prototypes can be found under lib/. When
