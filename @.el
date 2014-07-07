@@ -3,7 +3,7 @@
 ;; This is free and unencumbered software released into the public domain.
 
 ;; Author: Christopher Wellons <mosquitopsu@gmail.com>
-;; URL: https://github.com/skeeto/skewer-mode
+;; URL: https://github.com/skeeto/at-el
 ;; Version: 1.4
 ;; Package-Requires: ((queue "0.1") (emacs "24"))
 
