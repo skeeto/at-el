@@ -1,9 +1,11 @@
-(require '@queue)
-(require '@stack)
-(require 'ert)
-(defalias 'deftest 'ert-deftest)
+;;; -*- lexical-binding: t; -*-
 
-(deftest @queue-test ()
+(require 'ert)
+(require 'cl-lib)
+(require '@stack)
+(require '@queue)
+
+(ert-deftest @queue-test ()
   (let ((q (@! @queue :new)))
     (@! q :enqueue 0)
     (@! q :enqueue 1)
@@ -13,10 +15,10 @@
     (should (= 3 (@! q :size)))
     (should
      (equal '(1 2 3)
-            (loop until (@! q :emptyp) collect (@! q :dequeue))))
+            (cl-loop until (@! q :emptyp) collect (@! q :dequeue))))
     (should (= 0 (@! q :size)))))
 
-(deftest @queue-stack ()
+(ert-deftest @queue-stack ()
   (let ((q (@extend @queue @stack)))
     (@! q :enqueue 'b)
     (should (eq 'b (@! q :peek)))

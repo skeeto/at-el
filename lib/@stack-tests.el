@@ -1,8 +1,10 @@
-(require '@stack)
-(require 'ert)
-(defalias 'deftest 'ert-deftest)
+;;; -*- lexical-binding: t; -*-
 
-(deftest @stack-test ()
+(require 'ert)
+(require 'cl-lib)
+(require '@stack)
+
+(ert-deftest @stack-test ()
   (let ((s (@! @stack :new)))
     (@! s :push 'a)
     (should (eq 'a (@! s :peek)))
@@ -14,5 +16,5 @@
     (should (= 3 (@! s :size)))
     (should
      (equal '(c b a)
-            (loop until (@! s :emptyp) collect (@! s :pop))))
+            (cl-loop until (@! s :emptyp) collect (@! s :pop))))
     (should (= 0 (@! s :size)))))

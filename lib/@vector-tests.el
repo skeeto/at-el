@@ -1,8 +1,9 @@
-(require '@vector)
-(require 'ert)
-(defalias 'deftest 'ert-deftest)
+;;; -*- lexical-binding: t; -*-
 
-(deftest @vector-tests ()
+(require 'ert)
+(require '@vector)
+
+(ert-deftest @vector-tests ()
   (let ((v (@! @vector :new)))
     (@! v :push 'a)
     (@! v :push 'b 'c)

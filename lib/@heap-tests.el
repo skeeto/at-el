@@ -1,8 +1,10 @@
-(require '@heap)
-(require 'ert)
-(defalias 'deftest 'ert-deftest)
+;;; -*- lexical-binding: t; -*-
 
-(deftest @heap-test ()
+(require 'ert)
+(require '@heap)
+(require 'cl-lib)
+
+(ert-deftest @heap-test ()
   (let ((h (@! @heap :new #'cdr)))
     (@! h :add '(d . 4))
     (@! h :add '(b . 2))
@@ -12,4 +14,4 @@
     (should (equal '(a b c d) (mapcar #'car (@! h :to-list))))
     (should
      (equal '(a b c d)
-            (loop until (@! h :emptyp) collect (car (@! h :next)))))))
+            (cl-loop until (@! h :emptyp) collect (car (@! h :next)))))))

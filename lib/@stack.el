@@ -1,9 +1,11 @@
-;;; @stack.el --- stack prototype written in @
+;;; @stack.el --- stack prototype written in @ -*- lexical-binding: t; -*-
 
 (require '@)
+(require 'cl-lib)
 
-(defvar @stack (@extend :head ())
-  "A stack with access provided only to the top of the stack.")
+(with-no-warnings
+  (defvar @stack (@extend :head ())
+    "A stack with access provided only to the top of the stack."))
 
 (def@ @stack :size ()
   "Return the number of elements in this stack."
@@ -32,7 +34,7 @@
 
 (def@ @stack :to-list ()
   "Return this entire stack as a list."
-  (copy-list @:head))
+  (cl-copy-list @:head))
 
 (provide '@stack)
 

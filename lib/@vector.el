@@ -1,16 +1,18 @@
-;;; @vector.el --- vector prototype written in @
+;;; @vector.el --- vector prototype written in @ -*- lexical-binding: t; -*-
 
 (require '@)
+(require 'cl-lib)
 
-(defvar @vector (@extend :vector [] :fill 0 :infinite t :vector-default nil)
-  "A dynamically growing vector with constant-time element
+(with-no-warnings
+  (defvar @vector (@extend :vector [] :fill 0 :infinite t :vector-default nil)
+    "A dynamically growing vector with constant-time element
 access. If :infinite is t then array access is unbounded to the
-right (i.e. all non-negative accesses are valid).")
+right (i.e. all non-negative accesses are valid)."))
 
 (def@ @vector :init (&rest elements)
   "Initialize vector with ELEMENTS."
   (@^:init)
-  (setf @:vector (coerce elements 'vector)
+  (setf @:vector (cl-coerce elements 'vector)
         @:fill (length elements)))
 
 (def@ @vector :size ()
@@ -30,14 +32,14 @@ right (i.e. all non-negative accesses are valid).")
   (prog1 @@
       (let* ((new-length (max 1 (ceiling (* factor (length @:vector)))))
              (vec (make-vector new-length @:vector-default)))
-        (loop for element across @:vector
-              for i upfrom 0
-              do (setf (aref vec i) element))
+        (cl-loop for element across @:vector
+                 for i upfrom 0
+                 do (setf (aref vec i) element))
         (setf @:vector vec))))
 
 (def@ @vector :trim ()
   "Free any extra space claimed by this vector."
-  (setf @:vector (subseq @:vector 0 @:fill)))
+  (setf @:vector (cl-subseq @:vector 0 @:fill)))
 
 (def@ @vector :push (&rest elements)
   "Append ELEMENTS to the end of this vector."
@@ -47,41 +49,41 @@ right (i.e. all non-negative accesses are valid).")
           (@:grow)))
     (dolist (element elements)
       (setf (aref @:vector @:fill) element)
-      (incf @:fill))))
+      (cl-incf @:fill))))
 
 (def@ @vector :pop ()
   "Remove the element from the end of this vector and return it."
   (when (> @:fill 0)
-    (prog1 (aref @:vector (decf @:fill))
+    (prog1 (aref @:vector (cl-decf @:fill))
       (setf (aref @:vector @:fill) nil))))
 
 (def@ @vector :shift ()
   "Remove element from the front of this vector (slow)."
   (unless (@:emptyp)
     (prog1 (@ @@ 0)
-      (setf @:vector (subseq @:vector 1))
-      (decf @:fill))))
+      (setf @:vector (cl-subseq @:vector 1))
+      (cl-decf @:fill))))
 
 (def@ @vector :unshift (&rest elements)
   "Add elements from to the front of this vector (slow), returning this."
   (prog1 @@
-      (setf @:vector (concatenate 'vector elements @:vector))
-    (incf @:fill (length elements))))
+      (setf @:vector (cl-concatenate 'vector elements @:vector))
+    (cl-incf @:fill (length elements))))
 
 (def@ @vector :swap (i j)
   "Swap elements I and J in this vector, returning this vector."
   (prog1 @@
     (unless (= i j)
-      (psetf (@ @@ i) (@ @@ j)
-             (@ @@ j) (@ @@ i)))))
+      (cl-psetf (@ @@ i) (@ @@ j)
+                (@ @@ j) (@ @@ i)))))
 
 (def@ @vector :to-list ()
   "Return the contents of this vector as a list."
-  (coerce (subseq @:vector 0 @:fill) 'list))
+  (cl-coerce (cl-subseq @:vector 0 @:fill) 'list))
 
 (def@ @vector :clone ()
   "Make a shallow copy of this vector."
-  (@extend @@ :vector (copy-seq @:vector) :fill @:fill
+  (@extend @@ :vector (cl-copy-seq @:vector) :fill @:fill
               :infinite @:infinite :vector-default @:vector-default))
 
 (def@ @vector :get (n)
@@ -92,7 +94,7 @@ right (i.e. all non-negative accesses are valid).")
         (aref @:vector n)
       (if @:infinite
           @:vector-default
-        (signal 'args-out-of-range (list (subseq @:vector 0 @:fill) n))))))
+        (signal 'args-out-of-range (list (cl-subseq @:vector 0 @:fill) n))))))
 
 (def@ @vector :set (n value)
   "If N is an integer, sets the index in the vector to VALUE."

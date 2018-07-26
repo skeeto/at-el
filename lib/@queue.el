@@ -1,10 +1,12 @@
 ;;; @queue.el --- queue prototype written in @
 
 (require '@)
+(require 'cl-lib)
 
-(defvar @queue (@extend :head nil :tail nil)
-  "A queue, restricted to appending to the back and retrieving from the front.
-This prototype can be mixed with @stack for pushing onto the front.")
+(with-no-warnings
+  (defvar @queue (@extend :head nil :tail nil)
+    "A queue, restricted to appending to the back and retrieving from the front.
+This prototype can be mixed with @stack for pushing onto the front."))
 
 (def@ @queue :size ()
   "Return the number of elements in this queue."
@@ -35,12 +37,12 @@ This prototype can be mixed with @stack for pushing onto the front.")
 
 (def@ @queue :clone ()
   "Return a shallow copy of this queue."
-  (let ((new-head (copy-seq @:head)))
+  (let ((new-head (cl-copy-seq @:head)))
     (@extend @@ :head new-head :tail (last new-head))))
 
 (def@ @queue :to-list ()
   "Return this entire queue as a list."
-  (copy-list @:head))
+  (cl-copy-list @:head))
 
 (provide '@queue)
 

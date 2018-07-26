@@ -1,9 +1,9 @@
 ;;; @-tests.el -*- lexical-binding: t; -*-
 
+(require '@)
 (require 'ert)
-(defalias 'deftest 'ert-deftest)
 
-(deftest @-inheritance ()
+(ert-deftest @-inheritance ()
   "Tests prototype chain walking."
   (should
    (string= "left"
@@ -27,19 +27,19 @@
                    (@top (@extend @left @right)))
               (@ @top :name)))))
 
-(deftest @-super ()
+(ert-deftest @-super ()
   (let* ((a (@extend :foo :a))
          (b (@extend a :foo :b)))
     (should (eq :b (@ b :foo)))
     (should (eq :a (@ b :foo :super t)))))
 
-(deftest @-setf ()
+(ert-deftest @-setf ()
   (let ((a (@extend :foo :before)))
     (should (eq :before (@ a :foo)))
     (setf (@ a :foo) :after)
     (should (eq :after (@ a :foo)))))
 
-(deftest @-instance-of ()
+(ert-deftest @-instance-of ()
   "Tests the @is function."
   (should (@is (@extend) @))
   (should (@is (@extend (@extend)) @))
@@ -47,15 +47,15 @@
   (should-not (@is t @))
   (should-not (@is @ t)))
 
-(deftest @-method ()
+(ert-deftest @-method ()
   "Tests method calls."
   (should
    (string=
     "Hi, Foo"
-    (let ((foo (@extend :greet (lambda (@ name) (concat "Hi, " name)))))
+    (let ((foo (@extend :greet (lambda (_ name) (concat "Hi, " name)))))
       (@! foo :greet "Foo")))))
 
-(deftest @-replace ()
+(ert-deftest @-replace ()
   "Tests the @: replacement walker."
   (should (equal (@--walk '(setf @:name 10) '(quote) #'@--replace)
                  '(setf (@ @@ :name) 10)))

@@ -1,11 +1,11 @@
-;;; @.el --- multiple-inheritance prototype-based objects DSL
+;;; @.el --- multiple-inheritance prototype-based objects DSL -*- lexical-binding: t; -*-
 
 ;; This is free and unencumbered software released into the public domain.
 
 ;; Author: Christopher Wellons <wellons@nullprogram.com>
 ;; URL: https://github.com/skeeto/at-el
-;; Version: 1.4
-;; Package-Requires: ((queue "0.1") (emacs "24"))
+;; Version: 1.5
+;; Package-Requires: ((emacs "24.3"))
 
 ;;; Commentary:
 
@@ -20,11 +20,12 @@
 
 ;;; Code:
 
-(require 'cl)
-(require 'queue)
+(require 'gv)
+(require 'cl-lib)
 
-(defvar @ [@ (:proto ())]
-  "The root object of the @ object system.")
+(with-no-warnings
+  (defvar @ [@ (:proto ())]
+    "The root object of the @ object system."))
 
 (defun @p (object)
   "Return t if OBJECT is an @ object."
@@ -42,9 +43,9 @@ are provided, extend @."
 
 (defun @precedence (object)
   "Return the lookup precedence order for OBJECT."
-  (remove-duplicates
+  (cl-remove-duplicates
    (append (plist-get (aref object 1) :proto)
-           (mapcan #'@precedence (plist-get (aref object 1) :proto)))))
+           (cl-mapcan #'@precedence (plist-get (aref object 1) :proto)))))
 
 (defun @is (object proto)
   "Return t if OBJECT is an instance of PROTO."
@@ -52,63 +53,90 @@ are provided, extend @."
        (or (eq object proto)
            (and (memq proto (@precedence object)) t))))
 
-(defun* @ (object property &key super (default nil defaulted))
+(defsubst @--queue-create ()
+  "Create a new empty queue object."
+  (cons nil nil))
+
+(defsubst @--queue-head (queue)
+  "Return the head of QUEUE without modification."
+  (car queue))
+
+(defun @--queue-enqueue (queue value)
+  "Add VALUE to the end of QUEUE."
+  (let ((new (cons value nil)))
+    (prog1 value
+      (if (cdr queue)
+          (setf (cdr (cdr queue)) new)
+        (setf (car queue) new))
+      (setf (cdr queue) new))))
+
+(defun @--queue-dequeue (queue)
+  "Remove and return the front of QUEUE."
+  (if (eq (car queue) (cdr queue))
+      (prog1 (caar queue)
+        (setf (car queue) nil
+              (cdr queue) nil))
+    (pop (car queue))))
+
+(cl-defun @ (object property &key super (default nil defaulted))
   "Find and return PROPERTY for OBJECT in the prototype chain.
 
 If :super is t, skip the first match in the prototype chain.
 If :default, don't produce an error but return the provided value."
-  (let ((queue (make-queue)))
-    (queue-enqueue queue object)
-    (loop while (queue-head queue)
-          with skip = (if super 1 0)
-          for plist = (aref (queue-dequeue queue) 1)
-          for pair = (plist-member plist property)
-          when pair do (if (zerop skip)
-                           (return (second pair))
-                         (decf skip))
-          do (dolist (parent (plist-get plist :proto))
-               (queue-enqueue queue parent))
-          finally (return
-                   (if defaulted
-                       default
-                     (@! object :get property))))))
+  (let ((queue (@--queue-create)))
+    (@--queue-enqueue queue object)
+    (cl-loop while (@--queue-head queue)
+             with skip = (if super 1 0)
+             for plist = (aref (@--queue-dequeue queue) 1)
+             for pair = (plist-member plist property)
+             when pair do (if (zerop skip)
+                              (cl-return (cl-second pair))
+                            (cl-decf skip))
+             do (dolist (parent (plist-get plist :proto))
+                  (@--queue-enqueue queue parent))
+             finally return
+             (if defaulted
+                 default
+               (@! object :get property)))))
 
 (defun @--set (object property new-value)
   "Set the PROPERTY of OBJECT to NEW-VALUE."
   (@! object :set property new-value))
 
-(defsetf @ @--set)
+(gv-define-simple-setter @ @--set)
 
 (defun @! (object property &rest args)
   "Call the method stored in PROPERTY with ARGS."
   (apply (@ object property) object args))
 
-(defun @--walk (sexp skip replace &optional head)
-  "Replace all symbols by calling REPLACE on them."
-  (macrolet ((wrap (exp) `(let ((v ,exp)) (if head (list v) v))))
-    (cond
-     ((symbolp sexp) (funcall replace sexp head))
-     ((atom sexp) (wrap sexp))
-     ((member (first sexp) skip) (wrap sexp))
-     ((wrap
-       (append (@--walk (first sexp) skip replace t)
-               (loop for element in (cdr sexp)
-                     collect (@--walk element skip replace nil))))))))
+(cl-eval-when (compile load)
+  (defun @--walk (sexp skip replace &optional head)
+    "Replace all symbols by calling REPLACE on them."
+    (cl-macrolet ((wrap (exp) `(let ((v ,exp)) (if head (list v) v))))
+      (cond
+       ((symbolp sexp) (funcall replace sexp head))
+       ((atom sexp) (wrap sexp))
+       ((member (cl-first sexp) skip) (wrap sexp))
+       ((wrap
+         (append (@--walk (cl-first sexp) skip replace t)
+                 (cl-loop for element in (cdr sexp)
+                          collect (@--walk element skip replace nil)))))))))
 
-(defun @--replace (symbol head)
-  "Replace @: and @^: symbols with their lookup/funcall expansions."
-  (let ((name (symbol-name symbol)))
-    (cond ((string-prefix-p "@:" name)
-           (let ((property (intern (substring name 1))))
-             (if head
-                 `(@! @@ ,property)
-               `(@ @@ ,property))))
-          ((string-prefix-p "@^:" name)
-           (let ((property (intern (substring name 2))))
-             (if head
-                 `(funcall (@ @@@ ,property :super t) @@)
-               `(@ @@ ,property :super t))))
-          (t (if head (list symbol) symbol)))))
+(cl-eval-when (compile load)
+  (defun @--replace (symbol head)
+    "Replace @: and @^: symbols with their lookup/funcall expansions."
+    (let ((name (symbol-name symbol)))
+      (cond ((string-prefix-p "@:" name)
+             (let ((property (intern (substring name 1))))
+               (if head
+                   `(@! @@ ,property)
+                 `(@ @@ ,property))))
+            ((string-prefix-p "@^:" name)
+             (let ((property (intern (substring name 2))))
+               (if head
+                   `(funcall (@ @@@ ,property :super t) @@)
+                 `(@ @@ ,property :super t))))
+            (t (if head (list symbol) symbol))))))
 
 (defmacro with-@@ (object &rest body)
   "Provide the @: and @^: DSL utilities for OBJECT in BODY."
@@ -121,11 +149,14 @@ If :default, don't produce an error but return the provided value."
   (declare (indent defun))
   `(progn
      (setf (@ ,object ,method)
-           (function* (lambda ,(cons '@@ params)
-                        ,@(if (stringp (car body)) (list (car body)) ())
-                        (let ((@@@ ,object))
-                          (with-@@ @@
-                            ,@(if (stringp (car body)) (cdr body) body))))))
+           (cl-function
+            (lambda ,(cons '@@ params)
+              ,@(if (stringp (car body)) (list (car body)) ())
+              (let ((@@@ ,object))
+                (ignore @@@)
+                (with-@@ @@
+                 (ignore @@)
+                 ,@(if (stringp (car body)) (cdr body) body))))))
      ,method))
 
 (font-lock-add-keywords 'emacs-lisp-mode
@@ -164,15 +195,15 @@ If :default, don't produce an error but return the provided value."
 
 (def@ @ :keys ()
   "Return a list of the keys directly on @@."
-  (loop for (key value) on (aref @@ 1) by #'cddr collect key))
+  (cl-loop for (key _) on (aref @@ 1) by #'cddr collect key))
 
 ;; Top-level Object Management
 
 (defun @--list-all ()
   "List all global prototypes that start with @."
-  (flet ((protop (atom) (and (boundp atom)
-                             (@p (symbol-value atom))
-                             (= ?@ (aref (symbol-name atom) 0)))))
+  (cl-flet ((protop (atom) (and (boundp atom)
+                                (@p (symbol-value atom))
+                                (= ?@ (aref (symbol-name atom) 0)))))
     (let ((list))
       (mapatoms (lambda (atom) (if (protop atom) (push atom list))))
       list)))
@@ -185,7 +216,8 @@ If :default, don't produce an error but return the provided value."
           (symbol (intern (completing-read prompt0 protos nil t "@")))
           (proto (symbol-value symbol))
           (props (@! proto :keys))
-          (methods (remove-if-not (lambda (p) (functionp (@ proto p))) props))
+          (methods (cl-remove-if-not
+                    (lambda (p) (functionp (@ proto p))) props))
           (method-names (mapcar #'symbol-name methods))
           (prompt1 "Describe property: ")
           (property (intern (completing-read prompt1 method-names nil t ":"))))
@@ -206,10 +238,6 @@ If :default, don't produce an error but return the provided value."
     (dolist (prop (@! proto :keys))
       (when (functionp (@ proto prop))
         (byte-compile (@ proto prop))))))
-
-;; Local Variables:
-;; lexical-binding: t
-;; End:
 
 (provide '@)
 
