@@ -126,7 +126,11 @@ If :default, don't produce an error but return the provided value."
   (defun @--replace (symbol head)
     "Replace @: and @^: symbols with their lookup/funcall expansions."
     (let ((name (symbol-name symbol)))
-      (cond ((string-prefix-p "@:" name)
+      (cond ((string-match "^@@@@+$" name)
+             (let ((sym (intern (concat name "@@"))))
+               (if head
+                   (list sym) sym)))
+            ((string-prefix-p "@:" name)
              (let ((property (intern (substring name 1))))
                (if head
                    `(@! @@ ,property)
@@ -150,11 +154,11 @@ If :default, don't produce an error but return the provided value."
   `(progn
      (setf (@ ,object ,method)
            (cl-function
-            (lambda ,(cons '@@ params)
+            (lambda ,(cons '@@@@ params)
               ,@(if (stringp (car body)) (list (car body)) ())
               (let ((@@@ ,object))
                 (ignore @@@)
-                (with-@@ @@
+                (with-@@ @@@@
                  (ignore @@)
                  ,@(if (stringp (car body)) (cdr body) body))))))
      ,method))
