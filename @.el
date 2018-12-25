@@ -164,12 +164,14 @@ If :default, don't produce an error but return the provided value."
      ,method))
 
 (font-lock-add-keywords 'emacs-lisp-mode
-  '(("(\\<\\(def@\\)\\> +\\([^ ()]+\\)"
+  ;; "(\\<\\(def@\\)\\> +\\([^ ()]+\\)"
+  '(("(\\<\\(def@\\) +\\([^ ()]+\\)"
      (1 'font-lock-keyword-face)
      (2 'font-lock-function-name-face))))
 
 (font-lock-add-keywords 'emacs-lisp-mode
-  '(("\\<\\(@\\^?:[^ ()]+\\)\\>"
+  ;; "\\<\\(@\\^?:[^ ()]+\\)\\>"
+  '(("\\(@\\^?:[^ ()]+\\)\\>"
      (1 'font-lock-builtin-face))))
 
 ;; Core methods
