@@ -78,7 +78,7 @@ are provided, extend @."
               (cdr queue) nil))
     (pop (car queue))))
 
-(cl-defun @ (object property &key super (default nil defaulted))
+(cl-defun @ (object property &key (super 0) (default nil defaulted))
   "Find and return PROPERTY for OBJECT in the prototype chain.
 
 If :super is t, skip the first match in the prototype chain.
@@ -86,7 +86,7 @@ If :default, don't produce an error but return the provided value."
   (let ((queue (@--queue-create)))
     (@--queue-enqueue queue object)
     (cl-loop while (@--queue-head queue)
-             with skip = (if super 1 0)
+             with skip = super
              for plist = (aref (@--queue-dequeue queue) 1)
              for pair = (plist-member plist property)
              when pair do (if (zerop skip)
@@ -99,6 +99,11 @@ If :default, don't produce an error but return the provided value."
                  default
                (@! object :get property)))))
 
+(defvar @--super 0 "Need dynamic variable to trace super property access.")
+(cl-defun @--super (object property &key (default nil defaulted))
+  (let ((@--super (if (boundp '@--super) (1+ (or @--super 0)) 1)))
+    (@ object property :super @--super :default default)))
+
 (defun @--set (object property new-value)
   "Set the PROPERTY of OBJECT to NEW-VALUE."
   (@! object :set property new-value))
@@ -108,6 +113,11 @@ If :default, don't produce an error but return the provided value."
 (defun @! (object property &rest args)
   "Call the method stored in PROPERTY with ARGS."
   (apply (@ object property) object args))
+
+(defun @--super! (object property &rest args)
+  "Call the method stored in PROPERTY with ARGS."
+  (let ((@--super (if (boundp '@--super) (1+ (or @--super 0)) 1)))
+    (apply (@ object property :super @--super) object args)))
 
 (cl-eval-when (compile load)
   (defun @--walk (sexp skip replace &optional head)
@@ -126,11 +136,7 @@ If :default, don't produce an error but return the provided value."
   (defun @--replace (symbol head)
     "Replace @: and @^: symbols with their lookup/funcall expansions."
     (let ((name (symbol-name symbol)))
-      (cond ((string-match "^@@@@+$" name)
-             (let ((sym (intern (concat name "@@"))))
-               (if head
-                   (list sym) sym)))
-            ((string-prefix-p "@:" name)
+      (cond ((string-prefix-p "@:" name)
              (let ((property (intern (substring name 1))))
                (if head
                    `(@! @@ ,property)
@@ -138,8 +144,8 @@ If :default, don't produce an error but return the provided value."
             ((string-prefix-p "@^:" name)
              (let ((property (intern (substring name 2))))
                (if head
-                   `(funcall (@ @@@ ,property :super t) @@)
-                 `(@ @@ ,property :super t))))
+                   `(@--super! @@ ,property)
+                 `(@--super @@ ,property))))
             (t (if head (list symbol) symbol))))))
 
 (defmacro with-@@ (object &rest body)
@@ -154,13 +160,11 @@ If :default, don't produce an error but return the provided value."
   `(progn
      (setf (@ ,object ,method)
            (cl-function
-            (lambda ,(cons '@@@@ params)
+            (lambda ,(cons '@@ params)
               ,@(if (stringp (car body)) (list (car body)) ())
-              (let ((@@@ ,object))
-                (ignore @@@)
-                (with-@@ @@@@
-                 (ignore @@)
-                 ,@(if (stringp (car body)) (cdr body) body))))))
+              (with-@@ @@
+                (ignore @@)
+                ,@(if (stringp (car body)) (cdr body) body)))))
      ,method))
 
 (font-lock-add-keywords 'emacs-lisp-mode

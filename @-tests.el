@@ -31,7 +31,7 @@
   (let* ((a (@extend :foo :a))
          (b (@extend a :foo :b)))
     (should (eq :b (@ b :foo)))
-    (should (eq :a (@ b :foo :super t)))))
+    (should (eq :a (@ b :foo :super 1)))))
 
 (ert-deftest @-setf ()
   (let ((a (@extend :foo :before)))
