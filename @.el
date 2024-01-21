@@ -99,9 +99,10 @@ If :default, don't produce an error but return the provided value."
                  default
                (@! object :get property)))))
 
-(defvar @--super 0 "Need dynamic variable to trace super property access.")
+(defvar @--super 0
+  "Dynamic variablee to trace super method call or super property access.")
 (cl-defun @--super (object property &key (default nil defaulted))
-  (let ((@--super (if (boundp '@--super) (1+ (or @--super 0)) 1)))
+  (let ((@--super (+ 1 @--super)))
     (@ object property :super @--super :default default)))
 
 (defun @--set (object property new-value)
@@ -116,7 +117,7 @@ If :default, don't produce an error but return the provided value."
 
 (defun @--super! (object property &rest args)
   "Call the method stored in PROPERTY with ARGS."
-  (let ((@--super (if (boundp '@--super) (1+ (or @--super 0)) 1)))
+  (let ((@--super (+ 1 @--super)))
     (apply (@ object property :super @--super) object args)))
 
 (cl-eval-when (compile load)
