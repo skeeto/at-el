@@ -152,7 +152,7 @@ If :default, don't produce an error but return the provided value."
 (defmacro with-@@ (object &rest body)
   "Provide the @: and @^: DSL utilities for OBJECT in BODY."
   (declare (indent defun))
-  `(let ((@@ ,object))
+  `(lexical-let ((@@ ,object))
      ,@(cdr (@--walk (cons 'progn body) '(quote with-@@) #'@--replace))))
 
 (defmacro def@ (object method params &rest body)
